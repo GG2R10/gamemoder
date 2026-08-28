@@ -1,0 +1,22 @@
+{
+    "KPlugin": {
+        "Id": "com.github.GG2R10.gamemoder",
+        "Name": "GameModer",
+        "Description": "Shows the GameMode state and lets you start or stop it for a window. Event-driven over D-Bus, no polling.",
+        "Category": "System Information",
+        "Version": "0.4.0",
+        "Icon": "applications-games",
+        "EnabledByDefault": true,
+        "License": "GPL-3.0+",
+        "Website": "",
+        "BugReportUrl": "",
+        "Authors": [
+            { "Name": "Conseq", "Email": "" }
+        ],
+        "ServiceTypes": [
+            "Plasma/Applet"
+        ]
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
