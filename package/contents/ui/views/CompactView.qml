@@ -1,8 +1,12 @@
 import QtQuick
+import QtQuick.Shapes
 import org.kde.kirigami as Kirigami
 
 // Compact panel representation: gamepad icon + status badge that makes it
-// obvious at a glance whether GameMode is active (green) or idle (dimmed).
+// obvious at a glance whether GameMode is active (badge/ring) or idle. The
+// icon itself never recolors on its own - which icon file is shown per
+// state, the badge color, and the active-state animation are all user
+// picks (see ConfigGeneral.qml), forwarded here from main.qml.
 Item {
     id: compact
 
@@ -12,23 +16,28 @@ Item {
     // Set by main.qml.
     property bool active: false
     property bool gamemodeAvailable: true
+    property int inactiveIconIndex: 3
+    property int activeIconIndex: 0
+    property color badgeColor: "#0eff16"
+    // 0 = breathing corner badge, 1 = rotating ring around the icon.
+    property int animationStyle: 0
 
-    // Local hover / press + deferred-theme state.
+    // Index order must match ConfigGeneral.qml's iconFiles/iconLabels.
+    readonly property var iconFiles: [
+        "gamemoder.svg",
+        "gamemoder-green.svg",
+        "gamemoder-full-green.svg",
+        "gamemoder-black.svg"
+    ]
+    readonly property string iconPath: Qt.resolvedUrl("../../icons/" +
+        compact.iconFiles[compact.active ? compact.activeIconIndex : compact.inactiveIconIndex])
+
+    // Local hover / press state.
     property bool hovered: false
     property bool pressed: false
-    // Defer isMask+color until after Plasma's theme startup (KVitals pattern)
-    // to avoid touching color before the platform theme is initialized.
-    property bool themeReady: false
 
     // Emitted when the user clicks the icon.
     signal activated()
-
-    Timer {
-        interval: 0
-        repeat: false
-        running: true
-        onTriggered: compact.themeReady = true
-    }
 
     // "Pill" background — the same visual language as the system tray. It lives
     // behind the icon, so it doesn't compete with (or scale) the icon glyph.
@@ -44,28 +53,23 @@ Item {
         }
     }
 
-    Kirigami.Icon {
-        id: gamepadIcon
+    // Two-layer crossfade: the SVG has its own full-color art (multicolor
+    // buttons, an all-green mando, etc.), so it's rendered as-is - no
+    // isMask tint - and swapping source between the active/inactive icon
+    // fades between layers instead of popping instantly.
+    Item {
+        id: iconCrossfade
         anchors.centerIn: parent
-        source: "applications-games"
-        fallback: "input-gaming"
-        isMask: compact.themeReady
-        // Greyed out and dimmed when the GameMode daemon is unreachable.
-        color: compact.themeReady
-            ? (!compact.gamemodeAvailable ? "#777777"
-                : (compact.active ? "#45d95c" : (compact.hovered ? "#cfcfcf" : "#ffffff")))
-            : Qt.rgba(0, 0, 0, 0)
         width: compact.width * 0.7
         height: width
-        opacity: compact.active ? 1.0 : (compact.gamemodeAvailable ? 1.0 : 0.4)
+        opacity: compact.gamemodeAvailable ? 1.0 : 0.4
+        Behavior on opacity { NumberAnimation { duration: 150 } }
 
         // The icon scales independently of the tile: a light "pop" on hover, a
         // slight "squish" on press. OutBack adds a little bounce so it feels
         // weighted instead of just "bigger".
         scale: compact.pressed ? 0.90 : (compact.hovered ? 1.12 : 1.0)
         transformOrigin: Item.Center
-
-        Behavior on opacity { NumberAnimation { duration: 150 } }
         Behavior on scale {
             NumberAnimation {
                 duration: compact.pressed ? 80 : 220
@@ -73,9 +77,41 @@ Item {
                 easing.overshoot: 1.8
             }
         }
+
+        property bool showA: true
+
+        Kirigami.Icon {
+            id: iconA
+            anchors.fill: parent
+            isMask: false
+            opacity: iconCrossfade.showA ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+            Component.onCompleted: source = compact.iconPath
+        }
+        Kirigami.Icon {
+            id: iconB
+            anchors.fill: parent
+            isMask: false
+            opacity: iconCrossfade.showA ? 0 : 1
+            Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
+        }
     }
 
-    // Clear status badge: green when GameMode is active, hidden when idle.
+    onIconPathChanged: {
+        // Load the new icon into the currently-hidden layer, then flip which
+        // layer is on top - both Behaviors above fire together, giving a
+        // true crossfade instead of a blink-through-transparent swap.
+        if (iconCrossfade.showA) {
+            iconB.source = compact.iconPath
+        } else {
+            iconA.source = compact.iconPath
+        }
+        iconCrossfade.showA = !iconCrossfade.showA
+    }
+
+    // Clear status badge: visible when GameMode is active, hidden when idle.
+    // Only shown in the "breathing badge" animation style - the rotating
+    // ring below is its own self-sufficient active indicator.
     Rectangle {
         id: statusDot
         anchors {
@@ -87,22 +123,59 @@ Item {
         width: compact.width * 0.22
         height: width
         radius: width / 2
-        color: compact.active ? "#0eff16" : "#7f7f7f"
+        color: compact.active ? compact.badgeColor : "#7f7f7f"
         border {
             width: Math.max(1, Math.round(compact.width * 0.02))
             color: Kirigami.Theme.backgroundColor
         }
-        visible: compact.gamemodeAvailable && (compact.themeReady || compact.active)
+        visible: compact.gamemodeAvailable && compact.animationStyle === 0
         opacity: compact.active ? 1.0 : 0.0
         Behavior on opacity { NumberAnimation { duration: 150 } }
 
         // Subtle breathing only when active — reinforces "this is running right
         // now" without being a blinking alarm.
         SequentialAnimation on scale {
-            running: compact.active && compact.gamemodeAvailable
+            running: compact.active && compact.gamemodeAvailable && compact.animationStyle === 0
             loops: Animation.Infinite
             NumberAnimation { from: 0.75; to: 1.15; duration: 900; easing.type: Easing.InOutSine }
             NumberAnimation { from: 1.15; to: 0.75; duration: 900; easing.type: Easing.InOutSine }
+        }
+    }
+
+    // Rotating ring around the icon — alternative active indicator, a single
+    // short arc sweeping continuously. Cheap: one small GPU-rendered Shape,
+    // only instantiated/animated while this style is selected and active.
+    Item {
+        id: ringIndicator
+        anchors.fill: iconCrossfade
+        visible: compact.gamemodeAvailable && compact.animationStyle === 1 && compact.active
+
+        property real sweepStart: 0
+        NumberAnimation on sweepStart {
+            running: ringIndicator.visible
+            from: 0
+            to: 360
+            duration: 2200
+            loops: Animation.Infinite
+        }
+
+        Shape {
+            anchors.fill: parent
+            antialiasing: true
+            ShapePath {
+                strokeColor: compact.badgeColor
+                strokeWidth: Math.max(1.5, ringIndicator.width * 0.05)
+                fillColor: "transparent"
+                capStyle: ShapePath.RoundCap
+                PathAngleArc {
+                    centerX: ringIndicator.width / 2
+                    centerY: ringIndicator.height / 2
+                    radiusX: ringIndicator.width / 2 - ringIndicator.width * 0.06
+                    radiusY: ringIndicator.height / 2 - ringIndicator.height * 0.06
+                    startAngle: ringIndicator.sweepStart
+                    sweepAngle: 100
+                }
+            }
         }
     }
 

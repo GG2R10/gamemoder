@@ -29,6 +29,20 @@ Unlike widgets that rely on periodic checks (*polling rates*) or execute the `ga
 
 ---
 
+## Selectable Icons and Animations
+
+The panel icon and active-state animation are configurable from the widget's settings — pick an icon per state (idle/active) and how the "GameMode is running" indicator animates.
+
+| Multicolor (default) | Green buttons | Fully green | Off (black) |
+| :---: | :---: | :---: | :---: |
+| <img src="assets/icon-default.png" width="48"> | <img src="assets/icon-green.png" width="48"> | <img src="assets/icon-full-green.png" width="48"> | <img src="assets/icon-black.png" width="48"> |
+
+| Breathing badge | Rotating ring |
+| :---: | :---: |
+| <img src="assets/anim-badge.gif" width="48"> | <img src="assets/anim-ring.gif" width="48"> |
+
+---
+
 ## Installation
 
 ### Option 1: Via KDE Plasma GUI (Recommended)

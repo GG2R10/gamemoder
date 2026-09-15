@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+      http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+  <kcfgfile arg="true"/>
+  <group name="General">
+    <!-- Index into CompactView.qml's iconFiles, shown while GameMode is
+         idle. Index order must match ConfigGeneral.qml's combo box. -->
+    <entry name="inactiveIconIndex" type="Int">
+      <default>3</default>
+    </entry>
+    <!-- Same, shown while GameMode is active. -->
+    <entry name="activeIconIndex" type="Int">
+      <default>0</default>
+    </entry>
+    <!-- Status badge / active-state accent color. -->
+    <entry name="badgeColor" type="Color">
+      <default>#0eff16</default>
+    </entry>
+    <!-- 0 = breathing corner badge, 1 = rotating ring around the icon.
+         Purely cosmetic (CompactView.qml) - never sent to gamemoded. -->
+    <entry name="animationStyle" type="Int">
+      <default>0</default>
+    </entry>
+  </group>
+</kcfg>

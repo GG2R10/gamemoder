@@ -4,7 +4,7 @@
         "Name": "GameModer",
         "Description": "Shows the GameMode state and lets you start or stop it for a window. Event-driven over D-Bus, no polling.",
         "Category": "System Information",
-        "Version": "0.4.0",
+        "Version": "0.8.0",
         "Icon": "applications-games",
         "EnabledByDefault": true,
         "License": "GPL-3.0+",
