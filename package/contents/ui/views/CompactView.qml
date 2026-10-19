@@ -162,7 +162,11 @@ Item {
     // container's rotation animates.
     Item {
         id: ringIndicator
-        anchors.fill: iconCrossfade
+        // Fixed at the Normal icon size on purpose: Large only grows the
+        // icon, so the comets keep their distance from the slot's edge.
+        anchors.centerIn: parent
+        width: compact.width * 0.7
+        height: width
         visible: compact.gamemodeAvailable && compact.animationStyle === 1 && compact.active
         // Transition: one decelerating turn ending at rest. Continuous: 6 s/rev.
         rotation: anim.continuous ? anim.turns(6000) * 360
