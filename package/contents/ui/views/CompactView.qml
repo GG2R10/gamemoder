@@ -22,7 +22,7 @@ Item {
     property color badgeColor: "#0eff16"
     // 0 = normal, 1 = large. Index order must match ConfigGeneral.qml.
     property int iconSize: 0
-    readonly property real iconFraction: iconSize === 1 ? 0.9 : 0.7
+    readonly property real iconFraction: iconSize === 1 ? 0.8 : 0.7
     // 0 = breathing corner badge, 1 = rotating ring around the icon,
     // 2 = static border around the icon.
     property int animationStyle: 0
@@ -137,8 +137,8 @@ Item {
         anchors {
             top: compact.top
             right: compact.right
-            topMargin: compact.width * 0.14
-            rightMargin: compact.width * 0.10
+            topMargin: compact.width * (compact.iconSize === 1 ? 0.06 : 0.14)
+            rightMargin: compact.width * (compact.iconSize === 1 ? 0.02 : 0.10)
         }
         width: compact.width * 0.22
         height: width

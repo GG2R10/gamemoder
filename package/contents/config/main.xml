@@ -14,7 +14,7 @@
     <entry name="activeIconIndex" type="Int">
       <default>0</default>
     </entry>
-    <!-- 0 = normal (70% of the panel tile), 1 = large (90%). The controller
+    <!-- 0 = normal (70% of the panel tile), 1 = large (80%). The controller
          art is wide and short, so it reads smaller than square icons. -->
     <entry name="iconSize" type="Int">
       <default>0</default>
