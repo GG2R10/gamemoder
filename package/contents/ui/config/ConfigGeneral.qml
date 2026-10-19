@@ -30,6 +30,8 @@ Kirigami.FormLayout {
     property alias cfg_activeIconIndex: activeIconCombo.currentIndex
     property alias cfg_badgeColor: badgeColorHolder.color
     property alias cfg_animationStyle: animationCombo.currentIndex
+    property alias cfg_iconSize: sizeCombo.currentIndex
+    readonly property int cfg_iconSizeDefault: 0
     property alias cfg_animationMode: modeCombo.currentIndex
     property alias cfg_animationFps: fpsCombo.currentIndex
     readonly property int cfg_animationModeDefault: 0
@@ -73,6 +75,21 @@ Kirigami.FormLayout {
             id: activeIconCombo
             model: page.iconLabels
         }
+    }
+
+    QQC2.ComboBox {
+        id: sizeCombo
+        Kirigami.FormData.label: i18n("Icon size:")
+        // Index order must match CompactView.qml's iconFraction.
+        model: [i18n("Normal"), i18n("Large")]
+    }
+    QQC2.Label {
+        Kirigami.FormData.isSection: true
+        text: i18n("The controller art is wide and short, so it can look smaller than square icons next to it in the panel. Large fills more of the panel slot.")
+        wrapMode: Text.WordWrap
+        font.italic: true
+        Layout.fillWidth: true
+        Layout.maximumWidth: Kirigami.Units.gridUnit * 25
     }
 
     Kirigami.Separator { Kirigami.FormData.isSection: true }

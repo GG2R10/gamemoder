@@ -20,6 +20,9 @@ Item {
     property int inactiveIconIndex: 3
     property int activeIconIndex: 0
     property color badgeColor: "#0eff16"
+    // 0 = normal, 1 = large. Index order must match ConfigGeneral.qml.
+    property int iconSize: 0
+    readonly property real iconFraction: iconSize === 1 ? 0.9 : 0.7
     // 0 = breathing corner badge, 1 = rotating ring around the icon,
     // 2 = static border around the icon.
     property int animationStyle: 0
@@ -77,7 +80,7 @@ Item {
     Item {
         id: iconCrossfade
         anchors.centerIn: parent
-        width: compact.width * 0.7
+        width: compact.width * compact.iconFraction
         height: width
         opacity: compact.gamemodeAvailable ? 1.0 : 0.4
         Behavior on opacity { NumberAnimation { duration: 150 } }
@@ -191,20 +194,41 @@ Item {
         }
     }
 
-    // Border style: a ring in the badge color around the icon.
+    // Border style: an outline that follows the icon's silhouette, in the
+    // badge color (shaders/outline.frag dilates the icon's alpha). The icon
+    // texture only re-renders when the icon changes, and the animation only
+    // touches opacity/scale, so a static outline costs nothing.
     // Transition: fades in while settling from slightly larger. Continuous:
-    // breathes 0.35..1. Plain Rectangle border, so nothing is re-tessellated.
-    Rectangle {
+    // breathes 0.35..1.
+    ShaderEffectSource {
+        id: iconSource
+        sourceItem: iconCrossfade
+        live: true
+        hideSource: false
+        // Padding so the outline has room outside the icon's own bounds.
+        readonly property real pad: Math.ceil(iconCrossfade.width * 0.12)
+        sourceRect: Qt.rect(-pad, -pad, iconCrossfade.width + 2 * pad, iconCrossfade.height + 2 * pad)
+        visible: false
+    }
+    ShaderEffect {
         id: borderIndicator
-        anchors.fill: iconCrossfade
+        z: -1
+        x: iconCrossfade.x - iconSource.pad
+        y: iconCrossfade.y - iconSource.pad
+        width: iconCrossfade.width + 2 * iconSource.pad
+        height: iconCrossfade.height + 2 * iconSource.pad
         visible: compact.gamemodeAvailable && compact.animationStyle === 2 && compact.active
-        radius: Kirigami.Units.cornerRadius ?? 4
-        color: "transparent"
-        border.color: compact.badgeColor
-        border.width: Math.max(1.5, width * 0.06)
+
+        property variant src: iconSource
+        property color color: compact.badgeColor
+        property size texel: Qt.size(1 / width, 1 / height)
+        // ~6 % of the icon, at least 1.5 px.
+        property real radius: Math.max(1.5, iconCrossfade.width * 0.06)
+        fragmentShader: "../shaders/outline.frag.qsb"
+
         opacity: anim.continuous ? 0.35 + 0.65 * anim.wave(2000)
                                  : anim.easeOut(anim.transitionProgress)
-        scale: anim.continuous ? 1.0 : 1.25 - 0.25 * anim.easeOut(anim.transitionProgress)
+        scale: (anim.continuous ? 1.0 : 1.25 - 0.25 * anim.easeOut(anim.transitionProgress)) * iconCrossfade.scale
     }
 
     MouseArea {
