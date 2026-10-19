@@ -29,7 +29,9 @@ Kirigami.FormLayout {
     property alias cfg_inactiveIconIndex: inactiveIconCombo.currentIndex
     property alias cfg_activeIconIndex: activeIconCombo.currentIndex
     property alias cfg_badgeColor: badgeColorHolder.color
-    property alias cfg_animationStyle: animationCombo.currentIndex
+    // Plain property (not an alias): stored values >= 1 from the removed
+    // rotating-ring style must still select a valid combo entry.
+    property int cfg_animationStyle: 0
     property alias cfg_iconSize: sizeCombo.currentIndex
     readonly property int cfg_iconSizeDefault: 0
     property alias cfg_animationMode: modeCombo.currentIndex
@@ -112,7 +114,7 @@ Kirigami.FormLayout {
     }
     QQC2.Label {
         Kirigami.FormData.isSection: true
-        text: i18n("Used for the status badge and, with the ring or border styles below, the ring or border itself.")
+        text: i18n("Used for the status badge and, with the outline style below, the outline itself.")
         wrapMode: Text.WordWrap
         Layout.fillWidth: true
         Layout.maximumWidth: Kirigami.Units.gridUnit * 25
@@ -133,9 +135,10 @@ Kirigami.FormLayout {
         // Index order must match CompactView.qml's animationStyle.
         model: [
             i18n("Breathing badge"),
-            i18n("Rotating ring"),
-            i18n("Icon border")
+            i18n("Icon outline")
         ]
+        currentIndex: Math.min(page.cfg_animationStyle, 1)
+        onActivated: page.cfg_animationStyle = currentIndex
     }
 
     QQC2.ComboBox {

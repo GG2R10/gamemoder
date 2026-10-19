@@ -1,10 +1,9 @@
 import QtQuick
-import QtQuick.Shapes
 import org.kde.kirigami as Kirigami
 import "../anim" as Anim
 
 // Compact panel representation: gamepad icon + status badge that makes it
-// obvious at a glance whether GameMode is active (badge/ring) or idle. The
+// obvious at a glance whether GameMode is active (badge/outline) or idle. The
 // icon itself never recolors on its own - which icon file is shown per
 // state, the badge color, and the active-state animation are all user
 // picks (see ConfigGeneral.qml), forwarded here from main.qml.
@@ -23,8 +22,8 @@ Item {
     // 0 = normal, 1 = large. Index order must match ConfigGeneral.qml.
     property int iconSize: 0
     readonly property real iconFraction: iconSize === 1 ? 0.8 : 0.7
-    // 0 = breathing corner badge, 1 = rotating ring around the icon,
-    // 2 = static border around the icon.
+    // 0 = breathing corner badge, 1 = outline around the icon. (Stored
+    // values from the removed rotating-ring style, 1 or 2, map to the outline.)
     property int animationStyle: 0
     // See anim/AnimationController.qml: 0 = static (one short transition when
     // GameMode activates), 1 = continuous; fps index into
@@ -157,47 +156,6 @@ Item {
                                : 0.6 + 0.4 * anim.easeOut(anim.transitionProgress)
     }
 
-    // Rotating-ring style: four short arcs 90 degrees apart, drawn once. The
-    // layout is symmetric, so the resting frame looks intentional; only the
-    // container's rotation animates.
-    Item {
-        id: ringIndicator
-        // Fixed at the Normal icon size on purpose: Large only grows the
-        // icon, so the comets keep their distance from the slot's edge.
-        anchors.centerIn: parent
-        width: compact.width * 0.7
-        height: width
-        visible: compact.gamemodeAvailable && compact.animationStyle === 1 && compact.active
-        // Transition: one decelerating turn ending at rest. Continuous: 6 s/rev.
-        rotation: anim.continuous ? anim.turns(6000) * 360
-                                  : 360 * anim.easeOut(anim.transitionProgress)
-
-        Shape {
-            anchors.fill: parent
-            antialiasing: true
-
-            component Comet: ShapePath {
-                property real from: 0
-                strokeColor: compact.badgeColor
-                strokeWidth: Math.max(1.5, ringIndicator.width * 0.05)
-                fillColor: "transparent"
-                capStyle: ShapePath.RoundCap
-                PathAngleArc {
-                    centerX: ringIndicator.width / 2
-                    centerY: ringIndicator.height / 2
-                    radiusX: ringIndicator.width / 2 - ringIndicator.width * 0.06
-                    radiusY: ringIndicator.height / 2 - ringIndicator.height * 0.06
-                    startAngle: from - 15
-                    sweepAngle: 30
-                }
-            }
-            Comet { from: -90 }
-            Comet { from: 0 }
-            Comet { from: 90 }
-            Comet { from: 180 }
-        }
-    }
-
     // Border style: an outline that follows the icon's silhouette, in the
     // badge color (shaders/outline.frag dilates the icon's alpha). The icon
     // texture only re-renders when the icon changes, and the animation only
@@ -221,7 +179,7 @@ Item {
         y: iconCrossfade.y - iconSource.pad
         width: iconCrossfade.width + 2 * iconSource.pad
         height: iconCrossfade.height + 2 * iconSource.pad
-        visible: compact.gamemodeAvailable && compact.animationStyle === 2 && compact.active
+        visible: compact.gamemodeAvailable && compact.animationStyle >= 1 && compact.active
 
         property variant src: iconSource
         property color color: compact.badgeColor

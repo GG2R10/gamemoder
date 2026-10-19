@@ -37,8 +37,13 @@ The panel icon and active-state animation are configurable from the widget's set
 | :---: | :---: | :---: | :---: |
 | <img src="assets/icon-default.png" width="48"> | <img src="assets/icon-green.png" width="48"> | <img src="assets/icon-full-green.png" width="48"> | <img src="assets/icon-black.png" width="48"> |
 
-| Breathing badge | Rotating ring |
+| Breathing badge | Icon outline |
 | :---: | :---: |
+| <img src="assets/anim-badge.gif" width="48"> | _(outline in the badge color, following the icon's shape)_ |
+
+Animations are **static by default**: a short transition plays when GameMode activates and then nothing runs, so the widget costs no CPU/GPU at rest. An optional continuous mode keeps animating at a capped frame rate (12-60 fps). Under *Icon size* you can also pick a larger icon.
+
+---: | :---: |
 | <img src="assets/anim-badge.gif" width="48"> | <img src="assets/anim-ring.gif" width="48"> |
 
 ---

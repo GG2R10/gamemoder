@@ -23,8 +23,8 @@
     <entry name="badgeColor" type="Color">
       <default>#0eff16</default>
     </entry>
-    <!-- 0 = breathing corner badge, 1 = rotating ring around the icon,
-         2 = border around the icon. Purely cosmetic (CompactView.qml) - never sent to gamemoded. -->
+    <!-- 0 = breathing corner badge, 1 = outline around the icon (old value 2
+         is still accepted as the outline). Purely cosmetic (CompactView.qml) - never sent to gamemoded. -->
     <entry name="animationStyle" type="Int">
       <default>0</default>
     </entry>
