@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Shapes
 import org.kde.kirigami as Kirigami
+import "../anim" as Anim
 
 // Compact panel representation: gamepad icon + status badge that makes it
 // obvious at a glance whether GameMode is active (badge/ring) or idle. The
@@ -19,8 +20,14 @@ Item {
     property int inactiveIconIndex: 3
     property int activeIconIndex: 0
     property color badgeColor: "#0eff16"
-    // 0 = breathing corner badge, 1 = rotating ring around the icon.
+    // 0 = breathing corner badge, 1 = rotating ring around the icon,
+    // 2 = static border around the icon.
     property int animationStyle: 0
+    // See anim/AnimationController.qml: 0 = static (one short transition when
+    // GameMode activates), 1 = continuous; fps index into
+    // AnimationOptions.fpsValues.
+    property int animationMode: 0
+    property int animationFps: 2
 
     // Index order must match ConfigGeneral.qml's iconFiles/iconLabels.
     readonly property var iconFiles: [
@@ -38,6 +45,16 @@ Item {
 
     // Emitted when the user clicks the icon.
     signal activated()
+
+    // Drives every active-state indicator below. Static by default; only
+    // transforms (rotation/opacity/scale) are animated, never geometry - see
+    // anim/README.md.
+    Anim.AnimationController {
+        id: anim
+        active: compact.active && compact.gamemodeAvailable
+        mode: compact.animationMode
+        fpsIndex: compact.animationFps
+    }
 
     // "Pill" background — the same visual language as the system tray. It lives
     // behind the icon, so it doesn't compete with (or scale) the icon glyph.
@@ -132,37 +149,28 @@ Item {
         opacity: compact.active ? 1.0 : 0.0
         Behavior on opacity { NumberAnimation { duration: 150 } }
 
-        // Subtle breathing only when active — reinforces "this is running right
-        // now" without being a blinking alarm.
-        SequentialAnimation on scale {
-            running: compact.active && compact.gamemodeAvailable && compact.animationStyle === 0
-            loops: Animation.Infinite
-            NumberAnimation { from: 0.75; to: 1.15; duration: 900; easing.type: Easing.InOutSine }
-            NumberAnimation { from: 1.15; to: 0.75; duration: 900; easing.type: Easing.InOutSine }
-        }
+        // Transition: pop in from small. Continuous: breathe. At rest: 1.0.
+        scale: anim.continuous ? 0.75 + 0.4 * anim.wave(1800)
+                               : 0.6 + 0.4 * anim.easeOut(anim.transitionProgress)
     }
 
-    // Rotating ring around the icon — alternative active indicator, a single
-    // short arc sweeping continuously. Cheap: one small GPU-rendered Shape,
-    // only instantiated/animated while this style is selected and active.
+    // Rotating-ring style: four short arcs 90 degrees apart, drawn once. The
+    // layout is symmetric, so the resting frame looks intentional; only the
+    // container's rotation animates.
     Item {
         id: ringIndicator
         anchors.fill: iconCrossfade
         visible: compact.gamemodeAvailable && compact.animationStyle === 1 && compact.active
-
-        property real sweepStart: 0
-        NumberAnimation on sweepStart {
-            running: ringIndicator.visible
-            from: 0
-            to: 360
-            duration: 2200
-            loops: Animation.Infinite
-        }
+        // Transition: one decelerating turn ending at rest. Continuous: 6 s/rev.
+        rotation: anim.continuous ? anim.turns(6000) * 360
+                                  : 360 * anim.easeOut(anim.transitionProgress)
 
         Shape {
             anchors.fill: parent
             antialiasing: true
-            ShapePath {
+
+            component Comet: ShapePath {
+                property real from: 0
                 strokeColor: compact.badgeColor
                 strokeWidth: Math.max(1.5, ringIndicator.width * 0.05)
                 fillColor: "transparent"
@@ -172,11 +180,31 @@ Item {
                     centerY: ringIndicator.height / 2
                     radiusX: ringIndicator.width / 2 - ringIndicator.width * 0.06
                     radiusY: ringIndicator.height / 2 - ringIndicator.height * 0.06
-                    startAngle: ringIndicator.sweepStart
-                    sweepAngle: 100
+                    startAngle: from - 15
+                    sweepAngle: 30
                 }
             }
+            Comet { from: -90 }
+            Comet { from: 0 }
+            Comet { from: 90 }
+            Comet { from: 180 }
         }
+    }
+
+    // Border style: a ring in the badge color around the icon.
+    // Transition: fades in while settling from slightly larger. Continuous:
+    // breathes 0.35..1. Plain Rectangle border, so nothing is re-tessellated.
+    Rectangle {
+        id: borderIndicator
+        anchors.fill: iconCrossfade
+        visible: compact.gamemodeAvailable && compact.animationStyle === 2 && compact.active
+        radius: Kirigami.Units.cornerRadius ?? 4
+        color: "transparent"
+        border.color: compact.badgeColor
+        border.width: Math.max(1.5, width * 0.06)
+        opacity: anim.continuous ? 0.35 + 0.65 * anim.wave(2000)
+                                 : anim.easeOut(anim.transitionProgress)
+        scale: anim.continuous ? 1.0 : 1.25 - 0.25 * anim.easeOut(anim.transitionProgress)
     }
 
     MouseArea {

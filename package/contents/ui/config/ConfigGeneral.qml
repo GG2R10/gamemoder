@@ -3,6 +3,7 @@ import QtQuick.Controls as QQC2
 import QtQuick.Dialogs
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import "../anim" as Anim
 
 Kirigami.FormLayout {
     id: page
@@ -29,6 +30,10 @@ Kirigami.FormLayout {
     property alias cfg_activeIconIndex: activeIconCombo.currentIndex
     property alias cfg_badgeColor: badgeColorHolder.color
     property alias cfg_animationStyle: animationCombo.currentIndex
+    property alias cfg_animationMode: modeCombo.currentIndex
+    property alias cfg_animationFps: fpsCombo.currentIndex
+    readonly property int cfg_animationModeDefault: 0
+    readonly property int cfg_animationFpsDefault: 2
     readonly property int cfg_inactiveIconIndexDefault: 3
     readonly property int cfg_activeIconIndexDefault: 0
     readonly property color cfg_badgeColorDefault: "#0eff16"
@@ -90,8 +95,10 @@ Kirigami.FormLayout {
     }
     QQC2.Label {
         Kirigami.FormData.isSection: true
-        text: i18n("Used for the status badge and, with the rotating-ring style below, the ring itself.")
+        text: i18n("Used for the status badge and, with the ring or border styles below, the ring or border itself.")
         wrapMode: Text.WordWrap
+        Layout.fillWidth: true
+        Layout.maximumWidth: Kirigami.Units.gridUnit * 25
         font.italic: true
     }
 
@@ -109,7 +116,30 @@ Kirigami.FormLayout {
         // Index order must match CompactView.qml's animationStyle.
         model: [
             i18n("Breathing badge"),
-            i18n("Rotating ring")
+            i18n("Rotating ring"),
+            i18n("Icon border")
         ]
+    }
+
+    QQC2.ComboBox {
+        id: modeCombo
+        Kirigami.FormData.label: i18n("Animation:")
+        model: Anim.AnimationOptions.modeLabels
+    }
+
+    QQC2.ComboBox {
+        id: fpsCombo
+        Kirigami.FormData.label: i18n("Frame rate:")
+        enabled: modeCombo.currentIndex === 1
+        model: Anim.AnimationOptions.fpsLabels
+    }
+
+    QQC2.Label {
+        Kirigami.FormData.isSection: true
+        text: i18n("Static mode plays one short animation when GameMode activates, then stays still and costs nothing. Continuous mode keeps animating; every frame repaints the whole panel (and its blur), so keep the frame rate low. Animations are disabled automatically when Plasma's animation speed is set to instant.")
+        wrapMode: Text.WordWrap
+        font.italic: true
+        Layout.fillWidth: true
+        Layout.maximumWidth: Kirigami.Units.gridUnit * 25
     }
 }

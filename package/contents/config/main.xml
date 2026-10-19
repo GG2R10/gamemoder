@@ -18,10 +18,19 @@
     <entry name="badgeColor" type="Color">
       <default>#0eff16</default>
     </entry>
-    <!-- 0 = breathing corner badge, 1 = rotating ring around the icon.
-         Purely cosmetic (CompactView.qml) - never sent to gamemoded. -->
+    <!-- 0 = breathing corner badge, 1 = rotating ring around the icon,
+         2 = border around the icon. Purely cosmetic (CompactView.qml) - never sent to gamemoded. -->
     <entry name="animationStyle" type="Int">
       <default>0</default>
+    </entry>
+    <!-- 0 = static (animate only on activation), 1 = continuous while active.
+         See ui/anim/AnimationController.qml. -->
+    <entry name="animationMode" type="Int">
+      <default>0</default>
+    </entry>
+    <!-- Index into AnimationOptions.fpsValues: 12/24/30/60/native. -->
+    <entry name="animationFps" type="Int">
+      <default>2</default>
     </entry>
   </group>
 </kcfg>

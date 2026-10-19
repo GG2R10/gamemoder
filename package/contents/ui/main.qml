@@ -327,6 +327,8 @@ PlasmoidItem {
         activeIconIndex: Plasmoid.configuration.activeIconIndex
         badgeColor: Plasmoid.configuration.badgeColor
         animationStyle: Plasmoid.configuration.animationStyle
+        animationMode: Plasmoid.configuration.animationMode
+        animationFps: Plasmoid.configuration.animationFps
         onActivated: root.expanded = !root.expanded
         // Ensure the watcher + reader are running (idempotent). The compact view
         // is the first thing constructed when the widget sits in the panel.
