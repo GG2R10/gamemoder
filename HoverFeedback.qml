@@ -28,7 +28,8 @@ Item {
     property bool useMouseArea: true
     property bool hovered: false
     property bool pressed: false
-    property color pillColor: Kirigami.Theme.highlightColor
+    // Neutral by default (follows the theme text color); override per widget.
+    property color pillColor: Kirigami.Theme.textColor
     property real pillMargin: Kirigami.Units.smallSpacing * 0.5
     property real pillRadius: Kirigami.Units.cornerRadius ?? 4
 
@@ -66,7 +67,7 @@ Item {
         anchors.margins: fb.pillMargin
         radius: fb.pillRadius
         color: fb.pillColor
-        opacity: (fb.preset.pill && fb.hovered) ? (fb.pressed ? 0.28 : 0.16) : 0
+        opacity: (fb.preset.pill && fb.hovered) ? (fb.pressed ? 0.20 : 0.12) : 0
         Behavior on opacity {
             NumberAnimation { duration: fb.animated ? 150 : 0; easing.type: Easing.OutCubic }
         }
