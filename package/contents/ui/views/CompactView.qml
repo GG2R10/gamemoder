@@ -41,9 +41,8 @@ Item {
     readonly property string iconPath: Qt.resolvedUrl("../../icons/" +
         compact.iconFiles[compact.active ? compact.activeIconIndex : compact.inactiveIconIndex])
 
-    // Local hover / press state.
-    property bool hovered: false
-    property bool pressed: false
+    // Index into AnimationOptions.hoverPresets (see anim/HoverFeedback.qml).
+    property int hoverStyle: 0
 
     // Emitted when the user clicks the icon.
     signal activated()
@@ -58,18 +57,14 @@ Item {
         fpsIndex: compact.animationFps
     }
 
-    // "Pill" background — the same visual language as the system tray. It lives
-    // behind the icon, so it doesn't compete with (or scale) the icon glyph.
-    Rectangle {
-        id: hoverBg
+    // Hover/press feedback: highlight pill behind the icon + scale/tilt the
+    // icon binds to. Declared first so the pill is behind and its MouseArea
+    // sits underneath the icon.
+    Anim.HoverFeedback {
+        id: feedback
         anchors.fill: parent
-        anchors.margins: Kirigami.Units.smallSpacing * 0.5
-        radius: Kirigami.Units.cornerRadius ?? 4
-        color: Kirigami.Theme.highlightColor
-        opacity: compact.hovered ? (compact.pressed ? 0.28 : 0.16) : 0
-        Behavior on opacity {
-            NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
-        }
+        style: compact.hoverStyle
+        onClicked: compact.activated()
     }
 
     // Two-layer crossfade: the SVG has its own full-color art (multicolor
@@ -84,18 +79,10 @@ Item {
         opacity: compact.gamemodeAvailable ? 1.0 : 0.4
         Behavior on opacity { NumberAnimation { duration: 150 } }
 
-        // The icon scales independently of the tile: a light "pop" on hover, a
-        // slight "squish" on press. OutBack adds a little bounce so it feels
-        // weighted instead of just "bigger".
-        scale: compact.pressed ? 0.90 : (compact.hovered ? 1.12 : 1.0)
+        // Hover/press scale and tilt come from HoverFeedback.
+        scale: feedback.scaleFactor
+        rotation: feedback.tilt
         transformOrigin: Item.Center
-        Behavior on scale {
-            NumberAnimation {
-                duration: compact.pressed ? 80 : 220
-                easing.type: Easing.OutBack
-                easing.overshoot: 1.8
-            }
-        }
 
         property bool showA: true
 
@@ -191,16 +178,6 @@ Item {
         opacity: anim.continuous ? 0.35 + 0.65 * anim.wave(2000)
                                  : anim.easeOut(anim.transitionProgress)
         scale: (anim.continuous ? 1.0 : 1.25 - 0.25 * anim.easeOut(anim.transitionProgress)) * iconCrossfade.scale
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        hoverEnabled: true
-        onEntered: compact.hovered = true
-        onExited: compact.hovered = false
-        onPressed: compact.pressed = true
-        onReleased: compact.pressed = false
-        onCanceled: compact.pressed = false
-        onClicked: compact.activated()
+        rotation: feedback.tilt
     }
 }

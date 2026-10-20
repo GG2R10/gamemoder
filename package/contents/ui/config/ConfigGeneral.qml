@@ -32,6 +32,8 @@ Kirigami.FormLayout {
     // Plain property (not an alias): stored values >= 1 from the removed
     // rotating-ring style must still select a valid combo entry.
     property int cfg_animationStyle: 0
+    property alias cfg_hoverStyle: hoverCombo.currentIndex
+    readonly property int cfg_hoverStyleDefault: 0
     property alias cfg_iconSize: sizeCombo.currentIndex
     readonly property int cfg_iconSizeDefault: 0
     property alias cfg_animationMode: modeCombo.currentIndex
@@ -77,6 +79,12 @@ Kirigami.FormLayout {
             id: activeIconCombo
             model: page.iconLabels
         }
+    }
+
+    QQC2.ComboBox {
+        id: hoverCombo
+        Kirigami.FormData.label: i18n("Hover animation:")
+        model: Anim.AnimationOptions.hoverStyleLabels
     }
 
     QQC2.ComboBox {

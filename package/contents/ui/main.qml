@@ -327,6 +327,7 @@ PlasmoidItem {
         activeIconIndex: Plasmoid.configuration.activeIconIndex
         badgeColor: Plasmoid.configuration.badgeColor
         iconSize: Plasmoid.configuration.iconSize
+        hoverStyle: Plasmoid.configuration.hoverStyle
         animationStyle: Plasmoid.configuration.animationStyle
         animationMode: Plasmoid.configuration.animationMode
         animationFps: Plasmoid.configuration.animationFps
